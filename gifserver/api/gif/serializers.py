@@ -9,8 +9,11 @@ pagination = api.model('A page of results', {
 })
 
 tag = api.model('Tag', {
-    'id': fields.Integer(readOnly=True, description='The unique identifier of a tag'),
     'name' : fields.String(required=True, description='Tag value'),
+})
+
+tags = api.model('Tags', {
+    'values' : fields.List(fields.Nested(tag))
 })
 
 gif = api.model('Gif', {
@@ -22,4 +25,8 @@ gif = api.model('Gif', {
 
 page_of_gifs = api.inherit('Page of gifs', pagination, {
     'items': fields.List(fields.Nested(gif))
+})
+
+page_of_tags = api.inherit('Page of tags', pagination, {
+    'items': fields.List(fields.Nested(tag))
 })

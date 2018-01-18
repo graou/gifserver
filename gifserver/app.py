@@ -7,6 +7,7 @@ sys.path.append(os.getcwd())
 from flask import Flask, Blueprint
 from gifserver import settings
 from gifserver.api.gif.endpoints.gifs import ns as gifs_namespace
+from gifserver.api.gif.endpoints.tags import ns as tags_namespace
 from gifserver.api.restplus import api
 from gifserver.database import db
 from gifserver.database import reset_database
@@ -35,6 +36,7 @@ def initialize_app(flask_app):
     blueprint = Blueprint('api', __name__, url_prefix='/api')
     api.init_app(blueprint)
     api.add_namespace(gifs_namespace)
+    api.add_namespace(tags_namespace)
     flask_app.register_blueprint(blueprint)
 
     db.init_app(flask_app)

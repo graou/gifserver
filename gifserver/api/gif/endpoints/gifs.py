@@ -2,11 +2,11 @@ import logging
 
 from flask import request
 from flask_restplus import Resource
-from gifserver.api.gif.business import create_gif, delete_gif
-from gifserver.api.gif.serializers import page_of_gifs, gif
+from gifserver.api.gif.business import create_gif, delete_gif, create_tag, delete_tag
+from gifserver.api.gif.serializers import page_of_gifs, gif, tag, tags
 from gifserver.api.gif.parsers import pagination_arguments, upload_parser
 from gifserver.api.restplus import api
-from gifserver.database.models import Gif
+from gifserver.database.models import Gif, Tag
 from werkzeug.utils import secure_filename
 from gifserver import settings
 
@@ -68,3 +68,37 @@ class GifItem(Resource):
         delete_gif(id)
         return None, 204
 
+
+@ns.route('/<int:gif_id>/tags')
+@api.response(404, 'Gif not found.')
+class TagCollection(Resource):
+
+    @api.marshal_list_with(tag)
+    def get(self, gif_id):
+        """
+        Returns the list of tags associated to a gif.
+        """
+        return Tag.query.filter(Tag.gifs.any(id=gif_id)).all()
+
+    @api.response(201, 'Tag successfully created.')
+    @api.expect(tag)
+    def post(self, gif_id):
+        """
+        Adds a tag to a gif.
+        """
+        data = request.json
+        create_tag(gif_id, data)
+        return None, 201
+
+
+@ns.route('/<int:gif_id>/tags/<string:tag_name>')
+@api.response(404, 'Tag not found.')
+class TagItem(Resource):
+    
+    @api.response(204, 'Tag successfully deleted.')
+    def delete(self, gif_id, tag_name):
+        """
+        Removes a tag from a gif.
+        """
+        delete_tag(gif_id, tag_name)
+        return None, 204

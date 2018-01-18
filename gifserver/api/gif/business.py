@@ -2,7 +2,7 @@ import os
 from PIL import Image
 
 from gifserver.database import db
-from gifserver.database.models import Gif
+from gifserver.database.models import Gif, Tag
 from gifserver import settings
 
 def get_thumbnail_fullpath(original_path):
@@ -28,6 +28,22 @@ def delete_gif(gif_id):
     # remove files from filesystem
     os.remove(os.path.join(settings.UPLOAD_FOLDER, gif.name))
     os.remove(get_thumbnail_fullpath(gif.name))
+    # it will also delete all associated tags
     db.session.delete(gif)
-    # TODO delete all associated tags
+    db.session.commit()
+
+def create_tag(gif_id, data):
+    tag_value = data.get('name')
+    tag = Tag.query.filter(Tag.name == tag_value).first()
+    gif = Gif.query.filter(Gif.id == gif_id).one()
+    if not(tag):
+        tag = Tag(tag_value)
+        db.session.add(tag)
+    tag.gifs.append(gif)
+    db.session.commit()
+
+def delete_tag(gif_id, tag_name):
+    gif = Gif.query.filter(Gif.id == gif_id).one()
+    tag = Tag.query.filter(Tag.name == tag_name).one()
+    gif.tags.remove(tag)
     db.session.commit()
